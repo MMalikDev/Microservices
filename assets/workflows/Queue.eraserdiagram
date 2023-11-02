@@ -1,0 +1,84 @@
+sequence-diagram
+
+// Columns Styles
+Client [icon: user, color: black]
+Gateway [icon: fastapi, color: 009688]
+Auth [icon: fastapi, color: 009688]
+Postgres [icon: postgres, color: 4169E1]
+MongoDB [icon: mongodb, color: 47A248]
+Rabbitmq [icon: rabbitmq, color: FF6600]
+Converter [icon: python, color: 3776AB]
+Notification [icon: python, color: 3776AB]
+
+order Client, Gateway, Auth, Postgres, MongoDB, Rabbitmq, Converter, Notification
+
+// JWT Process
+Client > Gateway: Provide Credentials
+activate Client
+
+activate Gateway
+Gateway > Auth: Request JWT
+deactivate Gateway
+
+activate Auth
+Auth <> Postgres: Validate Credentials
+activate Postgres
+deactivate Postgres
+Auth > Gateway: Generate JWT
+deactivate Auth
+
+activate Gateway
+Gateway > Client: Provide JWT
+deactivate Gateway
+deactivate Client
+
+// Upload Process
+Client > Gateway: Provide Video to Upload
+activate Client
+deactivate Client
+
+activate Gateway
+Gateway > MongoDB: Upload Video
+activate MongoDB
+deactivate MongoDB
+Gateway > Rabbitmq: Add Message to Video Queue
+deactivate Gateway
+
+activate Rabbitmq
+loop [icon: video, color: 326CE5, label: Video Queue] {
+    Rabbitmq > Converter: Consume Message
+}
+
+activate Converter
+deactivate Rabbitmq
+Converter <> MongoDB: Get Video
+activate MongoDB
+deactivate MongoDB
+Converter > MongoDB: Upload Audio
+activate MongoDB
+deactivate MongoDB
+Converter > Rabbitmq : Add Message to Audio Queue
+deactivate Converter
+
+activate Rabbitmq
+loop [icon: audio, color: 326CE5, label: Audio Queue] {
+    Rabbitmq > Notification: Consume Message
+}
+
+activate Notification
+deactivate Rabbitmq
+Notification --> Client: Provide Audio ID
+deactivate Notification
+
+// Download Process
+Client > Gateway: Request Audio to Download
+activate Client
+
+activate Gateway
+Gateway <> MongoDB: Get Audio to Stream
+activate MongoDB
+deactivate MongoDB
+
+Gateway > Client: Stream Audio
+deactivate Gateway
+deactivate Client

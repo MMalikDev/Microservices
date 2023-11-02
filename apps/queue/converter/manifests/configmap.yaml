@@ -1,0 +1,11 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: converter-configmap
+  namespace: queue
+data:
+  LOG_LEVEL: INFO
+  THIRD_PARTY_LOGS: "False"
+
+  AUDIO_QUEUE: "audio"
+  VIDEO_QUEUE: "video"

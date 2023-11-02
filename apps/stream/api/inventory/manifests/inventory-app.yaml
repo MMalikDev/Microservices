@@ -1,0 +1,44 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: inventory
+  namespace: stream
+  labels:
+    app: inventory
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: inventory
+  template:
+    metadata:
+      labels:
+        app: inventory
+    spec:
+      containers:
+        - name: inventory
+          imagePullPolicy: Never
+          image: localhost/stream_api_inventory
+          ports:
+            - name: http
+              protocol: TCP
+              containerPort: 80
+          envFrom:
+            - configMapRef:
+                name: inventory-configmap
+            - secretRef:
+                name: inventory-secret
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: inventory
+  namespace: stream
+spec:
+  selector:
+    app: inventory
+  ports:
+    - name: http
+      targetPort: http
+      protocol: TCP
+      port: 80

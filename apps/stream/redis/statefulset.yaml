@@ -1,0 +1,54 @@
+kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+  name: redis
+  namespace: stream
+spec:
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis/redis-stack:7.2.0-v6
+          ports:
+            - name: dashboard
+              protocol: TCP
+              containerPort: 8001
+            - name: db
+              protocol: TCP
+              containerPort: 6379
+          envFrom:
+            - configMapRef:
+                name: redis-configmap
+            - secretRef:
+                name: redis-secret
+          volumeMounts:
+            - name: redis-volume
+              mountPath: "/data"
+      volumes:
+        - name: redis-volume
+          persistentVolumeClaim:
+            claimName: redis-pvc
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: redis
+  namespace: stream
+spec:
+  selector:
+    app: redis
+  ports:
+    - name: db
+      targetPort: db
+      protocol: TCP
+      port: 6379
+    - name: dashboard
+      targetPort: dashboard
+      protocol: TCP
+      port: 8001

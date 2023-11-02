@@ -1,0 +1,53 @@
+sequence-diagram
+
+
+// Columns Styles
+Client [icon: user]
+Web [icon: svelte, color: FF3E00]
+Inventory API [icon: fastapi, color: 009688]
+Payment API [icon: fastapi, color: 009688]
+Redis [icon: redis, color: DC382D]
+
+order Client, Web, Payment API, Inventory API
+
+// Refunded Order Process
+Client > Web: Place an Order (AJAX)
+activate Client
+activate Web
+deactivate Client
+
+Web > Payment API: Place New Order
+activate Payment API
+deactivate Web
+
+Payment API > Redis: Add Pending Order to Stream
+activate Redis
+deactivate Payment API
+
+loop [icon: clipboard , color: 326CE5, label: Order Stream] {
+    Redis > Inventory API: Consume Stream
+    activate Inventory API
+    deactivate Redis
+}
+
+Inventory API <> Redis: Check Stock
+activate Redis
+deactivate Redis
+
+opt [icon: x-square, color: red, label: Not Enough Stock] {
+    Inventory API > Redis: Add Refund to Stream
+    activate Redis
+    deactivate Inventory API
+}
+
+loop [icon: dollar-sign , color: 326CE5, label: Refund Stream] {
+    Redis > Payment API: Consume Stream
+    activate Payment API
+    deactivate Redis
+}
+
+Payment API > Redis: Cancel Order
+activate Redis
+deactivate Redis
+Payment API --> Client: Refund Order
+deactivate Payment API

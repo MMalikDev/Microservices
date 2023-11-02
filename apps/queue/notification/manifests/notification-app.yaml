@@ -1,0 +1,30 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: notification
+  namespace: queue
+  labels:
+    app: notification
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 8
+  template:
+    metadata:
+      labels:
+        app: notification
+    spec:
+      containers:
+        - name: notification
+          imagePullPolicy: Never
+          image: localhost/queue_notification
+          envFrom:
+            - configMapRef:
+                name: notification-configmap
+            - secretRef:
+                name: notification-secret

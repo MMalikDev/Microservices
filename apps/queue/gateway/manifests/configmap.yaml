@@ -1,0 +1,13 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: gateway-configmap
+  namespace: queue
+data:
+  LOG_LEVEL: INFO
+  THIRD_PARTY_LOGS: "False"
+
+  LOGIN_API: "http://auth/login"
+  VALIDATE_API: "http://auth/validate"
+
+  VIDEO_QUEUE: "video"

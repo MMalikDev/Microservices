@@ -1,0 +1,8 @@
+pika
+httpx
+fastapi
+python-multipart
+uvicorn[standard]
+
+Flask
+Flask-PyMongo

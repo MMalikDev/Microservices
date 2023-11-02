@@ -1,0 +1,61 @@
+sequence-diagram
+
+// Columns Styles
+Client [icon: user]
+Web [icon: svelte, color: FF3E00]
+Inventory API [icon: fastapi, color: 009688]
+Payment API [icon: fastapi, color: 009688]
+Redis [icon: redis, color: DC382D]
+
+order Client, Web, Payment API, Inventory API
+
+// Completed Order Process
+Client > Web: Place an Order (AJAX)
+activate Client
+activate Web
+deactivate Client
+
+Web > Payment API: Place New Order
+activate Payment API
+deactivate Web
+
+Payment API > Redis: Add Pending Order to Stream
+activate Redis
+deactivate Payment API
+
+loop [icon: Redis , color: 326CE5, label: Order Stream] {
+    Redis > Inventory API: Consume Stream
+    activate Inventory API
+    deactivate Redis
+}
+
+Inventory API <> Redis: Check Stock
+activate Redis
+deactivate Redis
+
+opt [icon: check, color: green, label: Products in Stock] {
+    Inventory API > Redis: Complete Order
+}
+activate Redis
+deactivate Redis
+deactivate Inventory API
+
+// Order List Process
+Client > Web: Request to Show Orders (SSR)
+activate Client
+activate Web
+
+Web > Payment API: Get List of Orders
+activate Payment API
+deactivate Web
+
+Payment API <> Redis: Fetch Orders
+activate Redis
+deactivate Redis
+Payment API > Web: Return Order List
+activate Web
+deactivate Payment API
+
+Web > Client: Show Orders
+deactivate Web
+deactivate Client

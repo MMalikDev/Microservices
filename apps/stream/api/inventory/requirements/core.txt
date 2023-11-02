@@ -1,0 +1,9 @@
+redis-om
+redis
+
+fastapi
+uvicorn
+
+pydantic_settings
+pydantic
+httpx

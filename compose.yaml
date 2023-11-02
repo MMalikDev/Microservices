@@ -1,0 +1,299 @@
+name: microservices
+
+networks:
+  proxy:
+    name: ${NETWORK_NAME:-proxy}
+    external: true
+
+volumes:
+  redis_data:
+  mongo_data:
+  mongo_config:
+  pgadmin_data:
+  postgres_data:
+  rabbitmq_data:
+
+configs:
+  pgpass:
+    content: postgres:5432:${DB_NAME}:${DB_USERNAME}:${DB_PASSWORD}
+
+  servers.json:
+    content: |
+      {
+        "Servers": {
+          "1": {
+            "Group": "Servers",
+            "Name": "Postgres",
+            "Host": "postgres",
+            "Port": 5432,
+            "MaintenanceDB": "${DB_NAME}",
+            "Username": "${DB_USERNAME}",
+            "PassFile": "/pgpass",
+            "SSLMode": "prefer"
+          }
+        }
+      }
+
+services:
+  web:
+    build: ./apps/stream/web/
+    image: localhost/stream_svelte:latest
+    container_name: web
+
+    depends_on:
+      inventory:
+        condition: service_started
+      payments:
+        condition: service_started
+
+    networks:
+      proxy:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.web.loadbalancer.server.port=80"
+      - "traefik.http.routers.web.rule=Host(`${DOMAIN}`)"
+
+  inventory:
+    build: ./apps/stream/api/inventory/
+    image: localhost/stream_api_inventory:latest
+    container_name: inventory
+
+    depends_on:
+      redis:
+        condition: service_started
+
+    environment:
+      DATABASE_URI: $REDIS_URI
+
+    networks:
+      proxy:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.inventory.loadbalancer.server.port=80"
+      - "traefik.http.routers.inventory.rule=Host(`inventory.${DOMAIN}`)"
+
+  payments:
+    build: ./apps/stream/api/payments/
+    image: localhost/stream_api_payments:latest
+    container_name: payments
+
+    depends_on:
+      redis:
+        condition: service_started
+
+    environment:
+      PRODUCT_API: $PRODUCT_API
+      USE_STREAMS: $USE_STREAMS
+      DATABASE_URI: $REDIS_URI
+
+    networks:
+      proxy:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.payments.loadbalancer.server.port=80"
+      - "traefik.http.routers.payments.rule=Host(`payments.${DOMAIN}`)"
+
+  redis:
+    image: redis/redis-stack:7.2.0-v6
+    container_name: redis
+
+    volumes:
+      - redis_data:/data
+
+    networks:
+      proxy:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.redis.loadbalancer.server.port=8001"
+      - "traefik.http.routers.redis.rule=Host(`redis.${DOMAIN}`)"
+
+  gateway:
+    build: ./apps/queue/gateway/
+    image: localhost/queue_gateway:latest
+    container_name: gateway
+
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      mongo:
+        condition: service_started
+      auth:
+        condition: service_started
+
+    environment:
+      LOG_LEVEL: $LOG_LEVEL
+      THIRD_PARTY_LOGS: $THIRD_PARTY_LOGS
+      VALIDATE_API: $VALIDATE_API
+      LOGIN_API: $LOGIN_API
+      MONGO_URI: $MONGO_URI
+      QUEUE_URI: $QUEUE_URI
+      VIDEO_QUEUE: $VIDEO_QUEUE
+
+    networks:
+      proxy:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.gateway.loadbalancer.server.port=8080"
+      - "traefik.http.routers.gateway.rule=Host(`gateway.${DOMAIN:-localhost}`)"
+
+  auth:
+    build: ./apps/queue/auth/
+    image: localhost/queue_auth:latest
+    container_name: auth
+
+    depends_on:
+      postgres:
+        condition: service_started
+
+    environment:
+      THIRD_PARTY_LOGS: $THIRD_PARTY_LOGS
+      LOG_LEVEL: $LOG_LEVEL
+      JWT_SECRET: $JWT_SECRET
+      DATABASE_URI: $DATABASE_URI
+      SUPERUSER_EMAIL: $SUPERUSER_EMAIL
+      SUPERUSER_PASSWORD: $SUPERUSER_PASSWORD
+
+    networks:
+      proxy:
+
+  converter:
+    build: ./apps/queue/converter/
+    image: localhost/queue_converter:latest
+    container_name: converter
+
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      mongo:
+        condition: service_started
+
+    environment:
+      LOG_LEVEL: $LOG_LEVEL
+      THIRD_PARTY_LOGS: $THIRD_PARTY_LOGS
+      MONGO_URI: $MONGO_URI
+      QUEUE_URI: $QUEUE_URI
+      AUDIO_QUEUE: $AUDIO_QUEUE
+      VIDEO_QUEUE: $VIDEO_QUEUE
+
+    networks:
+      proxy:
+
+  notification:
+    build: ./apps/queue/notification/
+    image: localhost/queue_notification:latest
+    container_name: notification
+
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+    environment:
+      LOG_LEVEL: $LOG_LEVEL
+      THIRD_PARTY_LOGS: $THIRD_PARTY_LOGS
+      QUEUE_URI: $QUEUE_URI
+      AUDIO_QUEUE: $AUDIO_QUEUE
+      EMAIL_ADDRESS: $EMAIL_ADDRESS
+      EMAIL_PASSWORD: $EMAIL_PASSWORD
+
+    networks:
+      proxy:
+
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    container_name: rabbitmq
+
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+    networks:
+      proxy:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.rabbitmq.loadbalancer.server.port=15672"
+      - "traefik.http.routers.rabbitmq.rule=Host(`rabbitmq.${DOMAIN:-localhost}`)"
+
+  postgres:
+    image: postgres:16-bookworm
+    container_name: postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: $DB_NAME
+      POSTGRES_USER: $DB_USERNAME
+      POSTGRES_PASSWORD: $DB_PASSWORD
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      proxy:
+
+  pgadmin4:
+    image: dpage/pgadmin4:8
+    container_name: pgadmin
+    restart: unless-stopped
+
+    environment:
+      PGADMIN_LISTEN_PORT: 80
+      PGADMIN_DEFAULT_EMAIL: $ADMIN_EMAIL
+      PGADMIN_DEFAULT_PASSWORD: $ADMIN_PASSWORD
+
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+    configs:
+      - source: servers.json
+        target: /pgadmin4/servers.json
+      - source: pgpass
+        target: /pgpass
+
+    networks:
+      proxy:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.postgres.loadbalancer.server.port=80"
+      - "traefik.http.routers.postgres.rule=Host(`postgres.${DOMAIN:-localhost}`)"
+
+  mongo:
+    image: mongo:7
+    container_name: mongo
+
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: $MONGO_INITDB_ROOT_USERNAME
+      MONGO_INITDB_ROOT_PASSWORD: $MONGO_INITDB_ROOT_PASSWORD
+
+    volumes:
+      - mongo_data:/data/db
+      - mongo_config:/data/configdb
+
+    networks:
+      proxy:
+
+  mongo-express:
+    image: mongo-express:1.0-20
+    container_name: mongo-express
+
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_MONGODB_ADMINUSERNAME: $MONGO_INITDB_ROOT_USERNAME
+      ME_CONFIG_MONGODB_ADMINPASSWORD: $MONGO_INITDB_ROOT_PASSWORD
+
+    depends_on:
+      mongo:
+        condition: service_started
+
+    networks:
+      proxy:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.mongo.loadbalancer.server.port=8081"
+      - "traefik.http.routers.mongo.rule=Host(`mongo.${DOMAIN:-localhost}`)"

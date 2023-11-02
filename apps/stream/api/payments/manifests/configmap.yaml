@@ -1,0 +1,9 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: payments-configmap
+  namespace: stream
+data:
+  DATABASE_URI: redis://redis/0
+  PRODUCT_API: inventory/products
+  USE_STREAMS: "False"

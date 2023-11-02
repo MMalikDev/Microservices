@@ -1,0 +1,14 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: rabbitmq-pvc
+  namespace: queue
+  labels:
+    app: rabbitmq
+spec:
+  storageClassName: main-storage
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi

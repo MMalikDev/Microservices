@@ -1,0 +1,197 @@
+cloud-architecture-diagram
+// direction down
+
+// Define groups and nodes
+Client [icon: users]
+Firewall [icon: firewall]
+Load Balancer [icon: load-balancer]
+
+Cluster [icon:kubernetes, color: 326CE5] {
+    
+    Default [icon: k8s-ns, color: gray] {
+        Traefik [icon: traefik, color: 24A1C1] {
+            Traefik Dashboard Service [icon: k8s-api]
+            Traefik Service [icon: k8s-api]
+            Traefik Deployment [icon: k8s-deploy]
+        }
+        
+        Ingress [icon: k8s-k-proxy]
+    }
+    
+    Queue [icon: k8s-ns, color: orange] {
+        Gateway [icon: fastapi, color: 009688] {
+            Gateway Service [icon: k8s-api]
+            Gateway Deployment [icon: k8s-deploy]
+            Gateway Configmap [icon: k8s-cm]
+            Gateway Secret [icon: k8s-secret]
+        }
+        
+        Auth [icon: fastapi, color: 009688] {
+            Auth Service [icon: k8s-api]
+            Auth Deployment [icon: k8s-deploy]
+            Auth Configmap [icon: k8s-cm]
+            Auth Secret [icon: k8s-secret]
+        }
+        
+        Notification [icon: python, color: 3776AB] {
+            Notification Deployment [icon: k8s-deploy]
+            Notification Configmap [icon: k8s-cm]
+            Notification Secret [icon: k8s-secret]
+        }
+        
+        Converter [icon: python, color: 3776AB] {
+            Converter Deployment [icon: k8s-deploy]
+            Converter Configmap [icon: k8s-cm]
+            Converter Secret [icon: k8s-secret]
+        }
+        
+        Rabbitmq [icon: rabbitmq, color: FF6600] {
+            Rabbitmq Service [icon: k8s-api]
+            Rabbitmq Deployment [icon: k8s-deploy]
+            Rabbitmq Configmap [icon: k8s-sts]
+            Rabbitmq Secret [icon: k8s-secret]
+            Rabbitmq PVC [icon: k8s-pvc]
+        }
+        
+        Mongo Express [icon: mongodb, color: 47A248] {
+            Mongo Express Service [icon: k8s-api]
+            Mongo Express Deployment [icon: k8s-deploy]
+            Mongo Express Configmap [icon: k8s-cm]
+            Mongo Express Secret [icon: k8s-secret]
+        }
+        
+        MongoDB [icon: mongodb, color: 47A248] {
+            MongoDB Service [icon: k8s-api]
+            MongoDB Deployment [icon: k8s-deploy]
+            MongoDB Secret [icon: k8s-secret]
+            MongoDB PVC Data [icon: k8s-pvc]
+            MongoDB PVC Config [icon: k8s-pvc]
+        }
+        
+        pgAdmin [icon: postgres, color: 4169E1] {
+            pgAdmin Service [icon: k8s-api]
+            pgAdmin Deployment [icon: k8s-deploy]
+            pgAdmin Secret [icon: k8s-secret]
+        }
+        
+        Postgres [icon: postgres, color: 4169E1] {
+            Postgres Service [icon: k8s-api]
+            Postgres Deployment [icon: k8s-deploy]
+            Postgres Secret [icon: k8s-secret]
+            Postgres Configmap [icon: k8s-cm]
+            Postgres PVC [icon: k8s-pvc]
+        }
+    }
+    
+    Stream [icon: k8s-ns, color: Red] {
+        Svelte Web [icon: svelte, color: FF3E00] {
+            Svelte Web Service [icon: k8s-deploy]
+            Svelte Web Deployment [icon: k8s-deploy]
+            Svelte Web Configmap [icon: k8s-cm]
+            Svelte Web Secret [icon: k8s-secret]
+        }
+        
+        Inventory [icon: fastapi, color: 009688] {
+            Inventory API Service [icon: k8s-api]
+            Inventory API Deployment [icon: k8s-deploy]
+            Inventory API Configmap [icon: k8s-cm]
+            Inventory API Secret [icon: k8s-secret]
+        }
+        
+        Payment API [icon: fastapi, color: 009688] {
+            Payment API Service [icon: k8s-api]
+            Payment API Deployment [icon: k8s-deploy]
+            Payment API Configmap [icon: k8s-cm]
+            Payment API Secret [icon: k8s-secret]
+        }
+        
+        Redis [icon: redis, color: DC382D] {
+            Redis Service [icon: k8s-api]
+            Redis Deployment [icon: k8s-deploy]
+            Redis PVC [icon: k8s-pvc]
+        }
+    }
+    
+    StorageClass [icon: k8s-sc]
+}
+
+Persistent Volumes [color: navy] {
+    PV1 [icon: k8s-pv]
+    PV2 [icon: k8s-pv]
+    PV3 [icon: k8s-pv]
+    PV4 [icon: k8s-pv]
+    PV5 [icon: k8s-pv]
+}
+
+// Define connections
+Ingress > Gateway Service
+Ingress > Svelte Web Service
+Ingress > Payment API Service
+Ingress > Inventory API Service
+
+Ingress > Traefik Dashboard Service
+Ingress > Mongo Express Service
+Ingress > pgAdmin Service
+Ingress > Redis Service
+
+Client > Firewall > Load Balancer > Traefik Service > Traefik Deployment --> Ingress
+Traefik Dashboard Service > Traefik Deployment
+
+// Queue
+Gateway Service > Gateway Deployment
+Gateway Deployment > Gateway Configmap, Gateway Secret
+Gateway Deployment > Auth Service, Rabbitmq Service, MongoDB Service
+
+Auth Service > Auth Deployment
+Auth Deployment > Auth Configmap, Auth Secret
+Auth Deployment > Postgres Service
+
+Converter Deployment > Converter Configmap, Converter Secret
+Converter Deployment > MongoDB Service, Rabbitmq Service,
+
+Notification Deployment > Notification Configmap, Notification Secret
+Notification Deployment > Rabbitmq Service
+Notification Deployment --> Client
+
+Rabbitmq Service > Rabbitmq Deployment
+Rabbitmq Deployment > Rabbitmq Configmap, Rabbitmq Secret, Rabbitmq PVC
+Rabbitmq PVC > StorageClass
+
+Mongo Express Service > Mongo Express Deployment
+Mongo Express Deployment > Mongo Express Configmap, Mongo Express Secret
+Mongo Express Deployment > MongoDB Service
+
+MongoDB Service > MongoDB Deployment
+MongoDB Deployment > MongoDB Secret, MongoDB PVC Data, MongoDB PVC Config
+MongoDB PVC Data > StorageClass
+MongoDB PVC Config > StorageClass
+
+pgAdmin Service > pgAdmin Deployment
+pgAdmin Deployment > pgAdmin Secret
+pgAdmin Deployment > Postgres Service
+
+Postgres Service > Postgres Deployment
+Postgres Deployment > Postgres Configmap, Postgres Secret, Postgres PVC
+Postgres PVC > StorageClass
+
+// Stream
+Svelte Web Service > Svelte Web Deployment
+Svelte Web Deployment > Svelte Web Configmap, Svelte Web Secret
+Svelte Web Deployment > Inventory API Service, Payment API Service
+
+Inventory API Service > Inventory API Deployment
+Inventory API Deployment > Inventory API Configmap, Inventory API Secret
+Inventory API Deployment > Redis Service
+
+Payment API Service > Payment API Deployment
+Payment API Deployment > Payment API Configmap, Payment API Secret
+Payment API Deployment > Redis Service
+
+Redis Service > Redis Deployment > Redis PVC > StorageClass
+
+// Storage
+StorageClass > PV1
+StorageClass > PV2
+StorageClass > PV3
+StorageClass > PV4
+StorageClass > PV5

@@ -1,0 +1,28 @@
+name: proxy
+
+networks:
+  proxy:
+    name: proxy
+
+services:
+  traefik:
+    image: traefik:v3.0
+    container_name: proxy
+    networks:
+      proxy:
+    ports:
+      - 80:80 # http
+      - 443:443 # https
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./config/provider.yaml:/etc/provider/config.yaml:ro
+      - ./config/traefik/traefik.yaml:/etc/traefik/traefik.yaml:ro
+      - ./config/traefik/certs/:/etc/traefik/certs/
+      - ./config/traefik/logs/:/var/log/traefik/
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.entrypoints=http"
+      - "traefik.http.routers.traefik.rule=Host(`proxy.localhost`)"
+      - "traefik.http.services.traefik.loadbalancer.server.port=8080"

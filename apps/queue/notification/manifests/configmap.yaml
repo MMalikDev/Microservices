@@ -1,0 +1,10 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: notification-configmap
+  namespace: queue
+data:
+  LOG_LEVEL: INFO
+  THIRD_PARTY_LOGS: "False"
+
+  AUDIO_QUEUE: "audio"

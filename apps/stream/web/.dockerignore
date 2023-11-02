@@ -1,0 +1,53 @@
+LICENSE
+README.md
+
+### Visual Studio ###
+**/.vs
+**/.vscode
+
+### Python ###
+**/__pycache__
+**/.venv
+
+# Environments
+**/.env
+**.env.*
+
+# Secrets
+**/values.dev.yaml
+**/secrets.dev.yaml
+
+### Django ###
+*.log
+*.pyc
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+staticfiles
+
+# Node
+**/node_modules
+**/npm-debug.log
+
+# Miscellaneous 
+**/bin
+**/obj
+**/*.jfm
+**/charts
+**/*.dbmdl
+**/.project
+**/.DS_Store
+**/.settings
+**/.classpath
+**/.toolstarget
+**/*.*proj.user
+
+# Svelte
+**/.svelte-kit
+**/package
+**/build
+**.vercel
+**.output
+**vite.config.js.timestamp-*
+**vite.config.ts.timestamp-*
+!**/.svelte-kit/tsconfig.json

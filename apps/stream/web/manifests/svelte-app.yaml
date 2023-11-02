@@ -1,0 +1,44 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: svelte
+  namespace: stream
+  labels:
+    app: svelte
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: svelte
+  template:
+    metadata:
+      labels:
+        app: svelte
+    spec:
+      containers:
+        - name: svelte
+          imagePullPolicy: Never
+          image: localhost/stream_svelte
+          ports:
+            - name: http
+              protocol: TCP
+              containerPort: 80
+          envFrom:
+            - configMapRef:
+                name: svelte-configmap
+            - secretRef:
+                name: svelte-secret
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: svelte
+  namespace: stream
+spec:
+  selector:
+    app: svelte
+  ports:
+    - name: http
+      targetPort: http
+      protocol: TCP
+      port: 80

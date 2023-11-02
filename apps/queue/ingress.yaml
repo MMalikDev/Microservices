@@ -1,0 +1,71 @@
+kind: Ingress
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: rabbitmq
+  namespace: queue
+spec:
+  rules:
+    - host: rabbitmq.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: rabbitmq
+                port:
+                  name: http
+---
+kind: Ingress
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: gateway
+  namespace: queue
+spec:
+  rules:
+    - host: gateway.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway
+                port:
+                  name: http
+---
+kind: Ingress
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: mongo
+  namespace: queue
+spec:
+  rules:
+    - host: mongo.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: mongo-express
+                port:
+                  name: http
+---
+kind: Ingress
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: postgres
+  namespace: queue
+spec:
+  rules:
+    - host: postgres.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: pgadmin
+                port:
+                  name: http

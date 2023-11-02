@@ -1,0 +1,17 @@
+cloud-architecture-diagram
+// direction down
+
+// Define groups and nodes
+Client [icon: user]
+Stream [color: Red] {
+        Web [icon: svelte, color: FF3E00]
+        Inventory API [icon: fastapi, color: 009688]
+        Payment API [icon: fastapi, color: 009688]
+        Redis [icon: redis, color: DC382D]
+}
+
+// Define connections
+Client > Web
+Web > Inventory API, Payment API
+Payment API > Inventory API, Redis
+Inventory API > Redis

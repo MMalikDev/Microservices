@@ -1,0 +1,61 @@
+sequence-diagram
+
+
+// Columns Styles
+Client [icon: user]
+Web [icon: svelte, color: FF3E00]
+Inventory API [icon: fastapi, color: 009688]
+Payment API [icon: fastapi, color: 009688]
+Redis [icon: redis, color: DC382D]
+
+order Client, Web, Payment API, Inventory API
+
+// Create Process
+Client > Web: Request to Add Product (AJAX)
+activate Client
+activate Web
+deactivate Client
+
+Web > Inventory API: Give New Product Details
+activate Inventory API
+deactivate Web
+
+Inventory API > Redis: Create New Product
+activate Redis
+deactivate Redis
+deactivate Inventory API
+
+// List Process
+Client > Web: Request to Show Products (SSR)
+activate Client
+activate Web
+
+Web > Inventory API: Get List of Products
+activate Inventory API
+deactivate Web
+
+Inventory API <> Redis: Fetch Products
+activate Redis
+deactivate Redis
+Inventory API > Web: Return Product List
+activate Web
+deactivate Inventory API
+
+Web > Client: Show Products
+deactivate Web
+deactivate Client
+
+// Delete Process
+Client > Web: Request to Delete Product (AJAX)
+activate Client
+activate Web
+deactivate Client
+
+Web > Inventory API: Notify Deletion
+activate Inventory API
+deactivate Web
+
+Inventory API > Redis: Delete Product
+activate Redis
+deactivate Redis
+deactivate Inventory API

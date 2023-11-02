@@ -1,0 +1,7 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: inventory-configmap
+  namespace: stream
+data:
+  DATABASE_URI: redis://redis:6379/0

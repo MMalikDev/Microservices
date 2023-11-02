@@ -1,0 +1,47 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: gateway
+  namespace: queue
+  labels:
+    app: gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 3
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+        - name: gateway
+          imagePullPolicy: Never
+          image: localhost/queue_gateway
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: gateway-configmap
+            - secretRef:
+                name: gateway-secret
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: gateway
+  namespace: queue
+spec:
+  selector:
+    app: gateway
+  ports:
+    - name: http
+      targetPort: http
+      protocol: TCP
+      port: 8080

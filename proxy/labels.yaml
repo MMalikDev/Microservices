@@ -1,0 +1,23 @@
+name: template
+
+networks:
+  proxy:
+    external: true
+
+labels:
+  - "traefik.enable=true"
+  - "traefik.http.services.${APPLICATION}.loadbalancer.server.port=$PORT"
+  - "traefik.http.routers.${APPLICATION}.rule=Host(`${APPLICATION}.${DOMAIN}`)"
+
+  # Router
+  - "traefik.http.routers.${APPLICATION}.tls=true"
+  - "traefik.http.routers.${APPLICATION}.entrypoints=https"
+  - "traefik.http.routers.${APPLICATION}.service=${APPLICATION}"
+
+  # Service
+  - "traefik.http.services.${APPLICATION}.loadbalancer.server.port=443"
+  - "traefik.http.services.${APPLICATION}.loadbalancer.server.scheme=https"
+
+  - "traefik.http.services.${APPLICATION}.loadbalancer.sticky=true"
+  - "traefik.http.services.${APPLICATION}.loadbalancer.sticky.cookie.secure=true"
+  - "traefik.http.services.${APPLICATION}.loadbalancer.sticky.cookie.name=StickyCookieTest"

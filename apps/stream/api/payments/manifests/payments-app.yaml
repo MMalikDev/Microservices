@@ -1,0 +1,44 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: payments
+  namespace: stream
+  labels:
+    app: payments
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: payments
+  template:
+    metadata:
+      labels:
+        app: payments
+    spec:
+      containers:
+        - name: payments
+          imagePullPolicy: Never
+          image: localhost/stream_api_payments
+          ports:
+            - name: http
+              protocol: TCP
+              containerPort: 80
+          envFrom:
+            - configMapRef:
+                name: payments-configmap
+            - secretRef:
+                name: payments-secret
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: payments
+  namespace: stream
+spec:
+  selector:
+    app: payments
+  ports:
+    - name: http
+      targetPort: http
+      protocol: TCP
+      port: 80

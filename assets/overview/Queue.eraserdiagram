@@ -1,0 +1,29 @@
+cloud-architecture-diagram
+
+// direction down
+
+// Define groups and nodes
+Client [icon: users]
+
+Queue [icon: k8s-ns, color: orange] {
+        Gateway [icon: fastapi, color: 009688]
+        Auth [icon: fastapi, color: 009688]
+        
+        Notification [icon: python, color: 3776AB]
+        Converter [icon: python, color: 3776AB]
+        
+        Rabbitmq [icon: rabbitmq, color: FF6600]
+        
+        MongoDB [icon: mongodb, color: 47A248]
+        Postgres [icon: postgres, color: 4169E1]
+}
+
+// Define connections
+Client > Gateway
+Gateway > Auth, MongoDB, Rabbitmq
+
+Auth > Postgres
+Notification > Rabbitmq
+Converter > Rabbitmq, MongoDB
+
+Notification --> Client
