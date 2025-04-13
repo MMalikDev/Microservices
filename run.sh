@@ -91,7 +91,7 @@ run_docker(){
 }
 
 create_cluster(){
-    minikube start;
+    minikube start
 }
 
 delete_cluster(){
@@ -103,7 +103,7 @@ build_images() {
     
     for name in "${!mappings[@]}"; do
         directory="${mappings[$name]}"
-        minikube image build -t "$name"  "$directory" 
+        minikube image build -t "$name"  "$directory"
     done
     minikube image ls --format table
 }
@@ -143,13 +143,13 @@ setup_stream(){
     local repo=apps/stream
     
     kubectl apply -f "${repo}/namespace.yaml"
-
+    
     kubectl apply -f "${repo}/redis/"
-
+    
     kubectl apply -f "${repo}/api/inventory/manifests/"
     kubectl apply -f "${repo}/api/payments/manifests/"
     kubectl apply -f "${repo}/web/manifests/"
-
+    
     kubectl apply -f "${repo}/ingress.yaml"
     
     switch_namespace stream
@@ -165,12 +165,12 @@ setup_queue(){
     kubectl apply -f "${repo}/postgres/web/"
     kubectl apply -f "${repo}/mongo/db/"
     kubectl apply -f "${repo}/mongo/web/"
-
+    
     kubectl apply -f "${repo}/auth/manifests/"
-    kubectl apply -f "${repo}/gateway/manifests/"    
+    kubectl apply -f "${repo}/gateway/manifests/"
     kubectl apply -f "${repo}/converter/manifests/"
     kubectl apply -f "${repo}/notification/manifests/"
-
+    
     kubectl apply -f "${repo}/ingress.yaml"
     
     switch_namespace queue
@@ -181,7 +181,7 @@ setup_third_party(){
     
     kubectl apply -f "${repo}/namespace.yaml"
     kubectl apply -f "${repo}/redis/"
-
+    
     local repo=apps/queue
     
     kubectl apply -f "${repo}/namespace.yaml"
@@ -214,7 +214,7 @@ main(){
             l) run_docker                       ;;
             p) start_proxy                      ;;
             m) run_pytest ${microservices[*]}   ;;
-
+            
             g) get_obj $OPTARG                  ;;
             c) create_cluster                   ;;
             d) delete_cluster                   ;;

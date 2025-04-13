@@ -2,7 +2,7 @@ import json
 import tempfile
 from typing import Dict
 
-import moviepy.editor
+import moviepy
 from bson.objectid import ObjectId
 from configs.core import settings
 from gridfs import GridFS
@@ -22,7 +22,7 @@ def convert_to_audio(
     contents = db_video.get(ObjectId(video_id))
     with tempfile.NamedTemporaryFile() as temp:
         temp.write(contents.read())
-        audio = moviepy.editor.VideoFileClip(temp.name).audio
+        audio = moviepy.VideoFileClip(temp.name).audio
         temp.flush()
 
     # Get audio file bytes data
