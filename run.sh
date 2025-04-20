@@ -122,7 +122,8 @@ get_obj(){
 }
 
 tunnel_proxy(){
-    minikube service proxy --url=true
+    sudo echo 'Activating Superuser'
+    minikube tunnel
 }
 
 start_ingress(){
