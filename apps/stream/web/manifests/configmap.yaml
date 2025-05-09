@@ -4,4 +4,4 @@ metadata:
   name: svelte-configmap
   namespace: stream
 data:
-  PLACEHOLDER: "NONE"
+  PLACEHOLDER: 'NONE'

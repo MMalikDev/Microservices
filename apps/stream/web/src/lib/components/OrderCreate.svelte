@@ -38,6 +38,7 @@
 			}
 		} catch (e) {
 			message = defaultMessage;
+			console.error(e);
 		}
 	}
 
